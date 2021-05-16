@@ -1,0 +1,108 @@
+<template>
+  <div class="far">
+    <div id="myChart" class="char"></div>
+  </div>
+</template>
+
+<script>
+    import Vue from 'vue'
+    import { findDouban} from '@/api/chat'
+
+    export default {
+        name: "doubanview",
+        data() {
+            return {
+                names:[],
+                socre:[],
+                actor:[],
+                duration:[]
+            };
+        },
+        mounted: function() {
+            this.myChart = this.$echarts.init(document.getElementById("myChart"));
+            this.get_info();
+        },
+        methods: {
+
+            get_info() {
+                findDouban().then(response => {
+                    const data = response.data;
+                    for(let i of data){
+                        this.names.push(data[0]);
+                        this.socre.push(data[1]);
+                        for(let j = 2;j<data.length;j++){
+                            if(data[j].includes("分钟")){
+                                this.duration.push(data[j]);
+                            }else{
+                                this.actor.push(data[j]);
+                            }
+                        }
+                    }
+                    console.log(this.names,this.socre,this.actor,this.duration);
+                    this.drawLine();
+                }).catch(error => {
+                    alert(error);  
+                });
+            },
+            drawLine() {
+                // 基于准备好的dom，初始化echarts实例
+                // let myChart = this.$echarts.init(document.getElementById("myChart"));
+                // 绘制图表
+                console.log("绘制图表")
+                this.myChart.setOption({
+                    title: { text: "豆瓣评分" },
+                    grid: {
+                    top: 10,
+                    bottom: 150,
+                    left: 150,
+                    right: 50
+                    },
+                    tooltip: {},
+                    xAxis: {
+                    max:'dataMax'
+                    },
+                    yAxis: {
+                    type: 'category',
+                    data: this.names,
+                    inverse: true,
+                    animationDuration: 300,
+                    animationDurationUpdate: 300,
+                    max: 4 // only the largest 3 bars will be displayed
+                    },
+                    series: [
+                    {realtimeSort: true,
+                        name: '评分',
+                        type: 'bar',
+                        data: this.socre,
+                        label: {
+                            show: true,
+                            position: 'right',
+                            valueAnimation: true
+                        }
+                    }
+                    ],
+                    legend: {
+                        show: true
+                    },
+                    animationDuration: 0,
+                    animationDurationUpdate: 3000,
+                    animationEasing: 'linear',
+                    animationEasingUpdate: 'linear'
+                });
+            },
+        }
+    }
+</script>
+
+<style scoped>
+.far {
+  width: 100%;
+  height: 750px;
+}
+.char {
+  width: 100%;
+  overflow: visible;
+  height: 100%;
+  margin: auto;
+}
+</style>
